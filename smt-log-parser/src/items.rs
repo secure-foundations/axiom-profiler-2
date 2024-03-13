@@ -14,7 +14,7 @@ macro_rules! idx {
         #[derive(
             Clone, Copy, Eq, PartialEq, Serialize, Deserialize, PartialOrd, Ord, Hash,
         )]
-        pub struct $struct(NonZeroUsize);
+        pub struct $struct(pub NonZeroUsize);
         impl From<usize> for $struct {
             fn from(value: usize) -> Self {
                 Self(NonZeroUsize::new(value.checked_add(1).unwrap()).unwrap())

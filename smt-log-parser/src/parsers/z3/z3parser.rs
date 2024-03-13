@@ -396,7 +396,10 @@ impl Z3LogParser for Z3Parser {
             }
         } else {
             let bound_terms = bound_terms
-                .map(|id| self.parse_existing_enode(id))
+                .map(|id| match self.terms.parse_existing_id(&mut self.strings, id) {
+                    Ok(TermIdx(id)) => Ok(ENodeIdx(id)),
+                    Err(e) => Err(e),
+                })
                 .collect::<Result<Vec<_>>>()?;
             MatchKind::Quantifier {
                 quant,
@@ -406,22 +409,22 @@ impl Z3LogParser for Z3Parser {
         };
 
         let mut blamed = Vec::new();
-        while let Some(word) = l.next() {
-            if let Some(first_term) = word.strip_prefix('(') {
-                // assumes that if we see "(#A", the next word in the split is "#B)"
-                let second_term = l.next().ok_or(Error::UnexpectedNewline)?.strip_suffix(')').ok_or(Error::TupleMissingParens)?;
-                let from = self.parse_existing_enode(first_term)?;
-                let to = self.parse_existing_enode(second_term)?;
-                // See comment in `EGraph::get_equalities`
-                let can_mismatch = || self.is_ge_version(4, 12, 3) &&
-                    self.terms[self.egraph.get_owner(to)].kind.app_name().is_some_and(|app| &self.strings[app] == "if");
-                self.egraph.blame_equalities(from, to, &self.stack, &mut blamed, can_mismatch)?;
-            } else {
-                let term = self.parse_existing_enode(word)?;
-                blamed.try_reserve(1)?;
-                blamed.push(BlameKind::Term { term })
-            };
-        }
+        // while let Some(word) = l.next() {
+        //     if let Some(first_term) = word.strip_prefix('(') {
+        //         // assumes that if we see "(#A", the next word in the split is "#B)"
+        //         let second_term = l.next().ok_or(Error::UnexpectedNewline)?.strip_suffix(')').ok_or(Error::TupleMissingParens)?;
+        //         let from = self.parse_existing_enode(first_term)?;
+        //         let to = self.parse_existing_enode(second_term)?;
+        //         // See comment in `EGraph::get_equalities`
+        //         let can_mismatch = || self.is_ge_version(4, 12, 3) &&
+        //             self.terms[self.egraph.get_owner(to)].kind.app_name().is_some_and(|app| &self.strings[app] == "if");
+        //         self.egraph.blame_equalities(from, to, &self.stack, &mut blamed, can_mismatch)?;
+        //     } else {
+        //         let term = self.parse_existing_enode(word)?;
+        //         blamed.try_reserve(1)?;
+        //         blamed.push(BlameKind::Term { term })
+        //     };
+        // }
 
         let match_ = Match { kind, blamed: blamed.into_boxed_slice() };
         self.insts.new_match(fingerprint, match_)?;
