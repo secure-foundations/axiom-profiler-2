@@ -7,7 +7,7 @@ use crate::{items::{Fingerprint, InstIdx, Instantiation, Match, MatchIdx}, Resul
 pub struct Insts {
     // `theory-solving` fingerprints are always 0, others rarely repeat.
     fingerprint_to_match: FxHashMap<Fingerprint, (MatchIdx, Option<InstIdx>)>,
-    pub(super) matches: TiVec<MatchIdx, Match>,
+    pub matches: TiVec<MatchIdx, Match>,
     pub(super) insts: TiVec<InstIdx, Instantiation>,
 
     has_theory_solving_inst: bool,

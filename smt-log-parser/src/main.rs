@@ -1,6 +1,9 @@
 use serde::Deserialize;
-use smt_log_parser::parsers::z3::z3parser::Z3Parser;
+use smt_log_parser::items::Quantifier;
+use smt_log_parser::parsers::z3::{z3parser::Z3Parser, Z3LogParser};
 use smt_log_parser::parsers::LogParser;
+use smt_log_parser::items::{MatchKind, QuantKind};
+use std::collections::HashMap;
 use std::{borrow::Cow, env, time::Duration};
 use wasm_timer::Instant;
 
@@ -26,7 +29,34 @@ fn main() {
         // let parsed = StreamParser::parse_entire_string(&file, Duration::from_secs_f32(10.0));
         // let to = Duration::from_secs_f32(15.0);
         let (_metadata, parser) = Z3Parser::from_file(path).unwrap();
-        let _result = parser.process_all();
+        let _result = parser.process_all().unwrap();
+
+        let mut qid_to_usage_count: HashMap<&str, _> = HashMap::new();
+
+        for inst in _result.insts.matches {
+            match inst.kind {
+                MatchKind::Quantifier { quant, pattern, bound_terms } => {
+                    if let Quantifier { kind: QuantKind::NamedQuant(name_id), .. } = _result.quantifiers[quant] {
+                        let name = &_result.strings[name_id];
+
+                        if !qid_to_usage_count.contains_key(name) {
+                            qid_to_usage_count.insert(name, 0);
+                        }
+                        qid_to_usage_count.insert(name, qid_to_usage_count[name] + 1);
+                    }
+                },
+
+                _ => {},
+            }
+        }
+
+        let mut qid_count_pairs = qid_to_usage_count.iter().collect::<Vec<_>>();
+        qid_count_pairs.sort_by_key(|(_, count)| **count);
+
+        for (qid, count) in qid_count_pairs {
+            println!("qid {qid:?} instantiated {count:?} time(s)");
+        }
+
         let elapsed_time = time.elapsed();
         // println!(
         //     "{} parsing after {} seconds (timeout {timeout:?})\n",

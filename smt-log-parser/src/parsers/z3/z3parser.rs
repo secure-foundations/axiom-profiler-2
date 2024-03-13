@@ -18,11 +18,11 @@ use super::{
 #[derive(Debug)]
 pub struct Z3Parser {
     pub(super) version_info: Option<VersionInfo>,
-    pub(super) terms: Terms,
+    pub terms: Terms,
 
-    pub(super) quantifiers: TiVec<QuantIdx, Quantifier>,
+    pub quantifiers: TiVec<QuantIdx, Quantifier>,
 
-    pub(super) insts: Insts,
+    pub insts: Insts,
     pub(super) inst_stack: Vec<(InstIdx, Vec<ENodeIdx>)>,
 
     pub(super) egraph: EGraph,
