@@ -1,8 +1,10 @@
 use serde::Deserialize;
+use smt_log_parser::display_with::DisplayWithCtxt;
 use smt_log_parser::items::Quantifier;
 use smt_log_parser::parsers::z3::{z3parser::Z3Parser, Z3LogParser};
 use smt_log_parser::parsers::LogParser;
-use smt_log_parser::items::{MatchKind, QuantKind};
+use smt_log_parser::items::{MatchKind, QuantKind, TermIdx};
+use smt_log_parser::display_with::{DisplayCtxt};
 use std::collections::HashMap;
 use std::{borrow::Cow, env, time::Duration};
 use wasm_timer::Instant;
@@ -29,15 +31,28 @@ fn main() {
         // let parsed = StreamParser::parse_entire_string(&file, Duration::from_secs_f32(10.0));
         // let to = Duration::from_secs_f32(15.0);
         let (_metadata, parser) = Z3Parser::from_file(path).unwrap();
-        let _result = parser.process_all().unwrap();
+        let parser = parser.process_all().unwrap();
 
         let mut qid_to_usage_count: HashMap<&str, _> = HashMap::new();
 
-        for inst in _result.insts.matches {
-            match inst.kind {
+        let ctxt = DisplayCtxt {
+            parser: &parser,
+            display_term_ids: false,
+            display_quantifier_name: false,
+            use_mathematical_symbols: true,
+        };
+
+        for inst in &parser.insts.matches {
+            match &inst.kind {
                 MatchKind::Quantifier { quant, pattern, bound_terms } => {
-                    if let Quantifier { kind: QuantKind::NamedQuant(name_id), .. } = _result.quantifiers[quant] {
-                        let name = &_result.strings[name_id];
+                    if let Quantifier { kind: QuantKind::NamedQuant(name_id), .. } = parser.quantifiers[*quant] {
+                        let name = &parser.strings[name_id];
+
+                        print!("qi {name}");
+                        for bound_term in bound_terms {
+                            print!(" {}", TermIdx(bound_term.0).with(&ctxt));
+                        }
+                        println!();
 
                         if !qid_to_usage_count.contains_key(name) {
                             qid_to_usage_count.insert(name, 0);
@@ -50,12 +65,12 @@ fn main() {
             }
         }
 
-        let mut qid_count_pairs = qid_to_usage_count.iter().collect::<Vec<_>>();
-        qid_count_pairs.sort_by_key(|(_, count)| **count);
+        // let mut qid_count_pairs = qid_to_usage_count.iter().collect::<Vec<_>>();
+        // qid_count_pairs.sort_by_key(|(_, count)| **count);
 
-        for (qid, count) in qid_count_pairs {
-            println!("qid {qid:?} instantiated {count:?} time(s)");
-        }
+        // for (qid, count) in qid_count_pairs {
+        //     println!("qid {qid:?} instantiated {count:?} time(s)");
+        // }
 
         let elapsed_time = time.elapsed();
         // println!(
@@ -65,7 +80,7 @@ fn main() {
         println!("Finished parsing after {} seconds", elapsed_time.as_secs_f32())
         // result.save_output_to_files(&settings, &time);
         // let render_engine = GraphVizRender;
-        // let _svg_result = render_engine.make_svg(OUT_DOT, OUT_SVG);
+        // let _svgparser = render_engine.make_svg(OUT_DOT, OUT_SVG);
         // add_link_to_svg(OUT_SVG, OUT_SVG_2);
         // println!(
         //     "Finished render sequence after {} seconds",

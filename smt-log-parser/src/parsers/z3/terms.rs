@@ -9,7 +9,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Terms {
     term_id_map: TermIdToIdxMap,
-    terms: TiVec<TermIdx, Term>,
+    pub terms: TiVec<TermIdx, Term>,
     meanings: FxHashMap<TermIdx, Meaning>,
     parsed_terms: Option<TermIdx>,
 
