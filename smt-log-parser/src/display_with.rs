@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{collections::HashSet, fmt, hash::Hash, sync::Arc};
 
 use crate::{items::*, parsers::z3::z3parser::Z3Parser};
 
@@ -78,6 +78,8 @@ pub struct DisplayCtxt<'a> {
     pub display_quantifier_name: bool,
     pub use_mathematical_symbols: bool,
     pub s_expr_mode: bool,
+
+    pub symbols: Option<HashSet<String>>,
 }
 
 mod private {
@@ -317,15 +319,19 @@ impl ProofOrApp {
         ctxt: &DisplayCtxt<'b>,
         data: &mut DisplayData<'b>,
     ) -> fmt::Result {
-        let name = &ctxt.parser.strings[self.name];
-
+        let mut name = &ctxt.parser.strings[self.name];
+        if name == "if" {
+            name = "ite";
+        }
         if data.children().is_empty() {
+            // if !ctxt.symbols.as_ref().map_or(false, |symbols| symbols.contains(name)) {
+            //     println!("\t\tUnknown symbol: {}", name);
+            // }
             write!(f, "{name}")?;
             return Ok(());
         }
         write!(f, "(")?;
         write!(f, "{name}")?;
-        let len = data.children().len();
         for (idx, child) in data.children().iter().enumerate() {
             write!(f, " ")?;
             display_child(f, *child, ctxt, data)?;
