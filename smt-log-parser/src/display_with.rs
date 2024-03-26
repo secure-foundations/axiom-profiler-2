@@ -77,6 +77,7 @@ pub struct DisplayCtxt<'a> {
     pub display_term_ids: bool,
     pub display_quantifier_name: bool,
     pub use_mathematical_symbols: bool,
+    pub s_expr_mode: bool,
 }
 
 mod private {
@@ -306,6 +307,33 @@ enum ProofOrAppKind<'a> {
     OtherApp(&'a str),
     Proof(&'a str),
 }
+
+
+
+impl ProofOrApp {
+    fn fmt_s_expr<'a,'b>(
+        self,
+        f: &mut fmt::Formatter<'_>,
+        ctxt: &DisplayCtxt<'b>,
+        data: &mut DisplayData<'b>,
+    ) -> fmt::Result {
+        let name = &ctxt.parser.strings[self.name];
+
+        if data.children().is_empty() {
+            write!(f, "{name}")?;
+            return Ok(());
+        }
+        write!(f, "(")?;
+        write!(f, "{name}")?;
+        let len = data.children().len();
+        for (idx, child) in data.children().iter().enumerate() {
+            write!(f, " ")?;
+            display_child(f, *child, ctxt, data)?;
+        }
+        write!(f, ")")
+    }
+}
+
 impl<'a, 'b> DisplayWithCtxt<DisplayCtxt<'b>, DisplayData<'b>> for &'a ProofOrApp {
     fn fmt_with(
         self,
@@ -313,6 +341,10 @@ impl<'a, 'b> DisplayWithCtxt<DisplayCtxt<'b>, DisplayData<'b>> for &'a ProofOrAp
         ctxt: &DisplayCtxt<'b>,
         data: &mut DisplayData<'b>,
     ) -> fmt::Result {
+        if ctxt.s_expr_mode {
+            return self.fmt_s_expr(f, ctxt, data);
+        }
+
         let math = ctxt.use_mathematical_symbols;
         use ProofOrAppKind::*;
         let name = &ctxt.parser.strings[self.name];

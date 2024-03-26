@@ -33,13 +33,14 @@ fn main() {
         let (_metadata, parser) = Z3Parser::from_file(path).unwrap();
         let parser = parser.process_all().unwrap();
 
-        let mut qid_to_usage_count: HashMap<&str, _> = HashMap::new();
+        // let mut qid_to_usage_count: HashMap<&str, _> = HashMap::new();
 
         let ctxt = DisplayCtxt {
             parser: &parser,
             display_term_ids: false,
             display_quantifier_name: false,
-            use_mathematical_symbols: true,
+            use_mathematical_symbols: false,
+            s_expr_mode: true,
         };
 
         for inst in &parser.insts.matches {
@@ -48,16 +49,16 @@ fn main() {
                     if let Quantifier { kind: QuantKind::NamedQuant(name_id), .. } = parser.quantifiers[*quant] {
                         let name = &parser.strings[name_id];
 
-                        print!("qi {name}");
+                        println!("qi {name}");
                         for bound_term in bound_terms {
-                            print!(" {}", TermIdx(bound_term.0).with(&ctxt));
+                            print!("\t{}\n", TermIdx(bound_term.0).with(&ctxt));
                         }
                         println!();
 
-                        if !qid_to_usage_count.contains_key(name) {
-                            qid_to_usage_count.insert(name, 0);
-                        }
-                        qid_to_usage_count.insert(name, qid_to_usage_count[name] + 1);
+                        // if !qid_to_usage_count.contains_key(name) {
+                        //     qid_to_usage_count.insert(name, 0);
+                        // }
+                        // qid_to_usage_count.insert(name, qid_to_usage_count[name] + 1);
                     }
                 },
 

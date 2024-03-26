@@ -580,6 +580,7 @@ impl InstGraph {
                             display_term_ids: false,
                             display_quantifier_name: false,
                             use_mathematical_symbols: true,
+                            s_expr_mode: false,
                         };
                         let pretty_gen_term = gen_term.with(&ctxt).to_string();
                         generalized_terms.push(pretty_gen_term);
@@ -906,6 +907,8 @@ impl NodeInfoMap {
             display_term_ids: !ignore_ids,
             display_quantifier_name: false,
             use_mathematical_symbols: true,
+
+            s_expr_mode: false,
         };
 
         let inst = &parser.insts[*inst_idx];
@@ -967,6 +970,7 @@ impl EdgeInfoMap {
             display_term_ids: !ignore_ids,
             display_quantifier_name: false,
             use_mathematical_symbols: true,
+            s_expr_mode: false,
         };
         let blame_term_idx = edge_data.get_blame_node().unwrap();
         let blame_term = blame_term_idx.with(&ctxt).to_string();
