@@ -271,6 +271,10 @@ impl<'a: 'b, 'b> DisplayWithCtxt<DisplayCtxt<'b>, DisplayData<'b>> for &'a Term 
             if let Some(meaning) = ctxt.parser.meaning(data.term) {
                 write!(f, "{}", meaning.with_data(ctxt, data))?;
             } else {
+                // let rst = format!("{}", self.kind.with_data(ctxt, data));
+                // if rst == "Int" {
+                //     println!("\n\nno meaning for term: {:?}", self);
+                // }
                 write!(f, "{}", self.kind.with_data(ctxt, data))?;
             }
             Ok(())
@@ -324,9 +328,9 @@ impl ProofOrApp {
             name = "ite";
         }
         if data.children().is_empty() {
-            // if !ctxt.symbols.as_ref().map_or(false, |symbols| symbols.contains(name)) {
-            //     println!("\t\tUnknown symbol: {}", name);
-            // }
+            if !ctxt.symbols.as_ref().map_or(false, |symbols| symbols.contains(name)) {
+                println!("\n\tUnknown symbol: {}", name);
+            }
             write!(f, "{name}")?;
             return Ok(());
         }

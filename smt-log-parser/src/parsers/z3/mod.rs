@@ -32,7 +32,7 @@ impl<T: Z3LogParser + Default> LogParser for T {
             "[mk-var]" => self.mk_var(split),
             "[mk-proof]" => self.mk_proof_app(split, true),
             "[mk-app]" => self.mk_proof_app(split, false),
-            // "[attach-meaning]" => self.attach_meaning(split),
+            "[attach-meaning]" => self.attach_meaning(split),
             "[attach-var-names]" => self.attach_var_names(split),
             // "[attach-enode]" => self.attach_enode(split),
             // "[eq-expl]" => self.eq_expl(split),

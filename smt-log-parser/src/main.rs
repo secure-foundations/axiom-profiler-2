@@ -82,9 +82,9 @@ fn main() {
     let smt_commands = parse_smt2_file(smt_path);
     let symbols = get_symbols(&smt_commands);
 
-    for s in &symbols {
-        println!("{}", s);
-    }
+    // for s in &symbols {
+    //     println!("{}", s);
+    // }
 
     let path = std::path::Path::new(trace_path);
     let filename = path
