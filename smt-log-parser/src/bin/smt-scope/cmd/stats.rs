@@ -1,21 +1,21 @@
-use std::{cmp::Reverse, path::PathBuf};
+use std::{path::PathBuf};
 
 use smt_log_parser::analysis::LogInfo;
 
-pub fn run(logfile: PathBuf, top_k: Option<usize>) -> Result<(), String> {
+pub fn run(logfile: PathBuf, _top_k: Option<usize>) -> Result<(), String> {
     let parser = super::run_on_logfile(logfile)?;
     let info = LogInfo::new(&parser);
 
-    let mut instantiations_occurrances: Vec<_> = info
-        .quants_iter()
-        .flat_map(|(quant, icount)| {
-            parser[quant]
-                .kind
-                .user_name()
-                .map(|name| (&parser[name], icount))
-        })
-        .collect();
-    instantiations_occurrances.sort_by_key(|a| Reverse(a.1));
+    // let mut instantiations_occurrances: Vec<_> = info
+    //     .quants_iter()
+    //     .flat_map(|(quant, icount)| {
+    //         parser[quant]
+    //             .kind
+    //             .user_name()
+    //             .map(|name| (&parser[name], icount))
+    //     })
+    //     .collect();
+    // instantiations_occurrances.sort_by_key(|a| Reverse(a.1));
 
     println!("no-enodes: {}", info.inst.enodes);
     println!("no-given-equalities: {}", info.inst.geqs);
@@ -31,12 +31,22 @@ pub fn run(logfile: PathBuf, top_k: Option<usize>) -> Result<(), String> {
     println!("nodes-count: {}", info.inst.total());
 
     println!("top-instantiations=");
-    let iter = instantiations_occurrances
-        .iter()
-        .take(top_k.unwrap_or(usize::MAX));
-    for (count, inst) in iter {
-        println!("{} = {}", inst, count);
+
+    for (quant, icount) in info.quants_iter() {
+        let name = parser[quant]
+            .kind
+            .user_name()
+            .map(|name| &parser[name])
+            .unwrap_or("unnamed");
+        println!("{} {:?} {}", name, quant, icount);
     }
+
+    // let iter = instantiations_occurrances
+    //     .iter()
+    //     .take(top_k.unwrap_or(usize::MAX));
+    // for (count, inst) in iter {
+    //     println!("{} = {}", inst, count);
+    // }
 
     Ok(())
 }
